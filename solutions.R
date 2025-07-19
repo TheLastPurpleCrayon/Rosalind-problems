@@ -350,3 +350,24 @@ string.probs <- function(string){
   str_flatten(round(log10(vec), 4), collapse = " ")
 }
 string.probs(string)
+
+# overlap graphs
+adj.list.3 <- function(fasta) {
+  parse.fasta(fasta)
+  
+  vec <- character(0)
+  for (i in 1:length(ids)) {
+    for (j in 1:length(ids)) {
+      if (j == i) next
+      if (str_extract(seqs[i], "\\w{3}$") == str_extract(seqs[j], "^\\w{3}")) {
+        vec <- c(vec, paste0(ids[i], " ", ids[j]))
+      }
+    }
+  }
+  cat(str_flatten(vec, collapse = "\n"))
+}
+adj.list.3(fasta)
+
+
+
+
