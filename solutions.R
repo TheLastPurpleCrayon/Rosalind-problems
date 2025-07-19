@@ -22,7 +22,7 @@ recc <- function(n, k) {
   }
   numOld + numYoung
 }
-recc(36, 3)
+recc(n, k)
 
 # computing GC content
 compare_gc <- function(string) {
@@ -80,16 +80,14 @@ mendel <- function(k, m, n) {
   hetHomorec.5 <- (m/tot)*(n/(tot-1))*2*0.5
   homodomHomodom + homodomHet + hetHet.75 + homodomHomorec + hetHomorec.5
 }
-mendel(2, 2, 2)
-#mendel(16,17,22)
+mendel(k, m, n)
 
 
 # translating RNA into protein
 rna.to.prot <- function(string) {
   vec <- str_extract_all(string, "\\w{3}")[[1]]
   prot <- case_match(vec,
-     # codon chart adapted from "RNA codon table" on the problem page: 
-     # https://rosalind.info/problems/prot/
+     # adapted from 'useful charts'/RNA_codon_chart.txt
      "UUU" ~ "F", "CUU" ~ "L", "AUU" ~ "I", "GUU" ~ "V",
      "UUC" ~ "F", "CUC" ~ "L", "AUC" ~ "I", "GUC" ~ "V",
      "UUA" ~ "L", "CUA" ~ "L", "AUA" ~ "I", "GUA" ~ "V",
@@ -109,7 +107,6 @@ rna.to.prot <- function(string) {
   )
   str_flatten(prot)
 }
-#string <- read_file("rosalind_prot.txt")
 rna.to.prot(string)
 
 
@@ -199,12 +196,13 @@ subseq.idx <- function(fasta) {
 }
 subseq.idx(fasta)
 
-# HELPER FUNCTION: parses fastas, assigning id's to "ids" and sequences to "seqs"
+# HELPER FUNCTION: fasta parser
 parse.fasta <- function(fasta) {
   spl <- str_split(fasta, pattern = ">")[[1]][-1]
   
   ids <<- str_extract(spl, pattern = "^.*(?=\\n)")
   seqs <<- str_extract(str_remove_all(spl, "\\n"), "[TACG]+")
+  # after running, global environment should contain "ids" and "seqs" vars
 }
 
 # transitions and transversions
@@ -287,7 +285,7 @@ enumerkate(alphabet, n) # this one took me a long time
 prot.mass <- function(aas) {
   spl <- strsplit(aas, "")[[1]]
   mass <- case_match(spl,
-    # see protein_masses_(monoisotopic).txt, copied from the problem statement
+    # see protein_masses_(monoisotopic).txt, which
     "A" ~ "71.03711",
     "C" ~ "103.00919",
     "D" ~ "115.02694",
@@ -312,3 +310,32 @@ prot.mass <- function(aas) {
   format(sum(as.numeric(mass)), nsmall = 5)
 }
 prot.mass(aas)
+
+# consensus and profile
+consensus.profile <- function(fasta) {
+  parse.fasta(fasta)
+  acgt <- c("A", "C", "G", "T")
+  
+  n <- str_length(seqs[1])
+  prof <- matrix(0, nrow = 4, ncol = n, dimnames = list(acgt))
+  for (i in 1:n) {              # each position
+    for (j in 1:length(seqs)) { # each sequence
+      for (k in 1:4) {          # each letter
+        prof[k, i] <- prof[k, i] + (strsplit(seqs[j], "")[[1]][i] == acgt[k])
+      }
+    }
+  }
+  consensus <- character(n)
+  for (l in 1:n) {
+    consensus[l] <- acgt[which.max(prof[,l])]
+  }
+  cat(paste0(str_flatten(consensus), "\n", 
+         "A: ", str_flatten(prof[1,], collapse = " "),
+         "\nC: ", str_flatten(prof[2,], collapse = " "), 
+         "\nG: ", str_flatten(prof[3,], collapse = " "), 
+         "\nT: ", str_flatten(prof[4,], collapse = " ")))
+}
+consensus.profile(fasta)
+
+
+
