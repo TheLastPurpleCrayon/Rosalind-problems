@@ -337,5 +337,16 @@ consensus.profile <- function(fasta) {
 }
 consensus.profile(fasta)
 
-
-
+# introduction to random strings
+string.probs <- function(string){
+  gene <- strsplit(str_extract(string, "^\\w+(?=\\n)"), "")[[1]]
+  probs <- as.numeric(str_split_1(str_extract(string, "(?<=\\n).*"), " "))
+  
+  vec <- rep(0, length(probs))
+  for (i in 1:length(probs)) {
+    vec[i] <- prod(case_match(gene, c("C", "G") ~    probs[i] /2, 
+                                    c("T", "A") ~ (1-probs[i])/2))
+  }
+  str_flatten(round(log10(vec), 4), collapse = " ")
+}
+string.probs(string)
