@@ -368,6 +368,36 @@ adj.list.3 <- function(fasta) {
 }
 adj.list.3(fasta)
 
+# HELPER FUNCTION: improved fasta parser
+# this one works on protein fastas and doesn't get confused by ids containing [ACGT]
+parse.fasta.v2 <- function(fa) {
+  spl <- str_split(fa, pattern = ">")[[1]][-1]
+  
+  ids <<- str_extract(spl, pattern = "^.*(?=\\n)")
+  for (i in 1:length(ids)) {
+    spl[i] <- str_remove(spl[i], fixed(ids[i]))
+    spl[i] <- str_remove_all(spl[i], "\\n")
+  }
+  seqs <<- spl
+}
 
-
-
+# finding a protein motif
+motif.locations <- function(string) {
+  prots <- strsplit(string, "\n")[[1]]
+  
+  output <- character(0)
+  for (i in 1:length(prots)) {
+    fasta <- read_file(paste0("http://www.uniprot.org/uniprot/", 
+                              str_extract(prots[i], "^.{6}"), 
+                              ".fasta"))
+    parse.fasta.v2(fasta)
+    
+    locs <- str_flatten(str_locate_all(seqs[1], "(?=N[^P][ST][^P])")[[1]][,1], " ")
+    if (locs != "") {
+      output <- c(output, prots[i], locs)
+    }
+    
+  }
+  cat(str_flatten(output, "\n"))
+}
+motif.locations(string)
