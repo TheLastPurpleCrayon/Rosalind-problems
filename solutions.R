@@ -2,9 +2,9 @@ library(tidyverse)
 
 # complement a strand of DNA
 revcomp <- function(string) {
-  reversed <- strsplit(string, NULL)[[1]] |> rev() |> paste(collapse = "")
-  strsplit(reversed, NULL)[[1]] |> 
-    case_match("A" ~ "T",
+  strsplit(string, NULL)[[1]] |>
+    rev() |> 
+    case_match("A" ~ "T", # could also do this with regex substitutions instead
                "T" ~ "A",
                "G" ~ "C",
                "C" ~ "G") |> 
@@ -401,3 +401,72 @@ motif.locations <- function(string) {
   cat(str_flatten(output, "\n"))
 }
 motif.locations(string)
+
+# HELPER FUNCTION: DNA trim
+# takes a vector of DNA codons and returns those after START and before STOP, inclusive
+dna.trim <- function(codons) {
+  if (!("ATG" %in% codons)) return(character(0))
+  while (codons[1] != "ATG") {
+    codons <- codons[-1]
+  }
+  stops <- which(codons == "TAG" | codons == "TAA" | codons == "TGA")
+  if (length(stops) == 0) return(character(0))
+  valid <- str_flatten(codons[1:stops[1]])
+  return(c(valid, dna.trim(codons[-1])))
+}
+
+# HELPER FUNCTION: DNA translator
+# takes a DNA string and returns the translated peptide(s),
+# respecting start and stop codons
+dna.translate <- function(string) {
+  codons <- str_extract_all(string, "\\w{3}")[[1]]
+  if (length(codons) == 0) return(character(0))
+  strings <- dna.trim(codons)
+  if (length(strings) == 0) return(character(0))
+  output <- character(0)
+  for (i in 1:length(strings)){
+    codons <- str_extract_all(strings[i], "\\w{3}")[[1]]
+    aas <- case_match(codons, # see `useful charts`/DNA_codon_chart.txt
+                      "TTT" ~ "F",   "CTT" ~ "L",   "ATT" ~ "I",   "GTT" ~ "V",
+                      "TTC" ~ "F",   "CTC" ~ "L",   "ATC" ~ "I",   "GTC" ~ "V",
+                      "TTA" ~ "L",   "CTA" ~ "L",   "ATA" ~ "I",   "GTA" ~ "V",
+                      "TTG" ~ "L",   "CTG" ~ "L",   "ATG" ~ "M",   "GTG" ~ "V",
+                      "TCT" ~ "S",   "CCT" ~ "P",   "ACT" ~ "T",   "GCT" ~ "A",
+                      "TCC" ~ "S",   "CCC" ~ "P",   "ACC" ~ "T",   "GCC" ~ "A",
+                      "TCA" ~ "S",   "CCA" ~ "P",   "ACA" ~ "T",   "GCA" ~ "A",
+                      "TCG" ~ "S",   "CCG" ~ "P",   "ACG" ~ "T",   "GCG" ~ "A",
+                      "TAT" ~ "Y",   "CAT" ~ "H",   "AAT" ~ "N",   "GAT" ~ "D",
+                      "TAC" ~ "Y",   "CAC" ~ "H",   "AAC" ~ "N",   "GAC" ~ "D",
+                      "TAA" ~ "",    "CAA" ~ "Q",   "AAA" ~ "K",   "GAA" ~ "E",
+                      "TAG" ~ "",    "CAG" ~ "Q",   "AAG" ~ "K",   "GAG" ~ "E",
+                      "TGT" ~ "C",   "CGT" ~ "R",   "AGT" ~ "S",   "GGT" ~ "G",
+                      "TGC" ~ "C",   "CGC" ~ "R",   "AGC" ~ "S",   "GGC" ~ "G",
+                      "TGA" ~ "",    "CGA" ~ "R",   "AGA" ~ "R",   "GGA" ~ "G",
+                      "TGG" ~ "W",   "CGG" ~ "R",   "AGG" ~ "R",   "GGG" ~ "G")
+    output <- c(output, str_flatten(aas))
+  }
+  output
+}
+
+# open reading frames
+get.orfs <- function(fasta) {
+  parse.fasta.v2(fasta)
+  
+  candidates <- character(6)
+  for (i in 1:length(seqs)) {
+    candidates[1] <- str_extract(seqs[i], "([ATCG]{3})*")
+    candidates[2] <- str_extract(str_remove(seqs[i], "^[ATCG]{1}"), "([ATCG]{3})*")
+    candidates[3] <- str_extract(str_remove(seqs[i], "^[ATCG]{2}"), "([ATCG]{3})*")
+    rc <- revcomp(seqs[i])
+    candidates[4] <- str_extract(rc, "([ATCG]{3})*")
+    candidates[5] <- str_extract(str_remove(rc, "^[ATCG]{1}"), "([ATCG]{3})*")
+    candidates[6] <- str_extract(str_remove(rc, "^[ATCG]{2}"), "([ATCG]{3})*")
+  }
+  
+  orfs <- character(0)
+  for (i in 1:length(candidates)) {
+    orfs <- c(orfs, dna.translate(candidates[i]))
+  }
+  cat(paste0(unique(orfs), collapse = "\n"))
+}
+get.orfs(fasta)
