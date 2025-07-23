@@ -470,3 +470,42 @@ get.orfs <- function(fasta) {
   cat(paste0(unique(orfs), collapse = "\n"))
 }
 get.orfs(fasta)
+
+# HELPER FUNCTION: complement
+# return the base which matches the given DNA base (so no U)
+complement <- function(base) {
+  if (base[1] == "A") return("T")
+  else if (base[1] == "T") return("A")
+  else if (base[1] == "C") return("G")
+  else if (base[1] == "G") return("C")
+  else return(NA)
+}
+
+# locating restriction sites 
+rev.palindromes <- function(fasta) {
+  parse.fasta.v2(fasta)
+  vec <- strsplit(seqs[1], "")[[1]]
+  # filter: at each position, check if its complement is 4-12 bases away
+  strings <- character(0)
+  indices <- character(0)
+  for (i in 1:length(vec)) {
+    for (j in 3:11) {
+      if ((i+j) > length(vec)) next
+      if (complement(vec[i]) == vec[i+j]) {
+        strings <- c(strings, str_flatten(vec[i:(i+j)]))
+        indices <- c(indices, paste0(c(i, j+1), collapse = " "))
+      }
+    }
+  }
+  
+  # find reverse palindromes from pre-filtered sequences
+  output <- character(0)
+  for (i in 1:length(strings)) {
+    if (strings[i] == revcomp(strings[i])) output <- c(output, indices[i])
+  }
+  cat(paste0(unique(output), collapse = "\n"))
+}
+rev.palindromes(fasta)
+
+
+
