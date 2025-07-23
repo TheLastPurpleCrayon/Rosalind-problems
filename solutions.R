@@ -507,5 +507,8 @@ rev.palindromes <- function(fasta) {
 }
 rev.palindromes(fasta)
 
-
-
+# independent alleles
+doub.heterozygous <- function(k, n) return(1-pbinom(n-1, 2^k, 1/4))
+# crossing *anything* with a double heterozygote yields a double heterozygote 
+# exactly 1/4 of the time no matter what the genotype of the other parent
+doub.heterozygous(k, n)
