@@ -512,3 +512,53 @@ doub.heterozygous <- function(k, n) return(1-pbinom(n-1, 2^k, 1/4))
 # crossing *anything* with a double heterozygote yields a double heterozygote 
 # exactly 1/4 of the time no matter what the genotype of the other parent
 doub.heterozygous(k, n)
+
+
+# HELPER FUNCTION: consolidate one pair of kmers
+# takes seqs, breaks into starting and ending kmers, and does ONE ROUND of consolidating
+# writes to global version of seqs, and if it consolidates, returns TRUE
+consolidate.one.kmer <- function(sqs, k) {
+  lis <- as.list(sqs)
+  for (i in 1:length(sqs)) {
+    lis[[i]] <- str_sub(sqs[i], c(1, str_length(sqs[i])-k+1),c(k, str_length(sqs[i])))
+  }
+  
+  for (i in 1:length(lis)) {
+    for (j in 1:length(lis)) {
+      if (i == j) next
+      if (lis[[i]][2] == lis[[j]][1]) {
+        seqs[i] <<- sqs[i] <- str_remove(paste0(sqs[i], sqs[j]), lis[[i]][2])
+        seqs <<- sqs[-j]
+        return(TRUE)
+      }
+    }
+  }
+  return(FALSE)
+}
+
+# genome assembly as shortest superstring
+assemble.reads <- function(fasta) {
+  parse.fasta.v2(fasta)
+  
+  # determine a max and min k by finding half the length of the shortest read
+  shortest <- seqs[which.min(str_length(seqs))]
+  kmax <- str_length(shortest) - 1
+  kmin <- round(str_length(shortest)/2, 0)
+  klist <- kmin:kmax
+
+  # loop through k's, doing as much consolidation at each k as possible
+  for (k in klist) {
+    if (length(seqs) == 1) break
+    stillGoing <- TRUE
+    while (stillGoing == TRUE) { # run consolidation fxn until it returns FALSE
+      consolidate.one.kmer(seqs, k) -> stillGoing
+    }
+  }
+  seqs
+}
+assemble.reads(fasta)
+
+
+
+
+
