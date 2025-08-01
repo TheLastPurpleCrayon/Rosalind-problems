@@ -748,3 +748,15 @@ complete.tree(n, string)
 # partial permutations
 partial.permutation <- function(n, k) return(prod(n:(n-k+1)) %% 1e6)
 partial.permutation(n, k)
+
+# perfect matchings and RNA secondary structures
+num.perfect.matchings <- function(fasta) {
+  parse.fasta.v2(fasta)
+  
+  au <- str_count(seqs[1], "[AU]")/2
+  cg <- str_count(seqs[1], "[CG]")/2
+  
+  format(factorialZ(au)*factorialZ(cg), scientific = F)
+}
+num.perfect.matchings(fasta)
+
