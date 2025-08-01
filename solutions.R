@@ -743,3 +743,8 @@ complete.tree <- function(n, string) {
   length(tree) - 1 + loners
 }
 complete.tree(n, string)
+
+
+# partial permutations
+partial.permutation <- function(n, k) return(prod(n:(n-k+1)) %% 1e6)
+partial.permutation(n, k)
