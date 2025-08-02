@@ -760,3 +760,22 @@ num.perfect.matchings <- function(fasta) {
 }
 num.perfect.matchings(fasta)
 
+# enumerating oriented gene orderings
+oriented.perms <- function(n) {
+  total.possible <- prod(seq(2, (2*n), 2)) # n*(n-2)*(n-4)*...*2
+  vec <- character(0)
+  current <- numeric(n)
+  cur.str <- character(1)
+  
+  while (length(vec) < total.possible) {
+    current[] <- sample(1:n, n)
+    current[] <- current*sample(c(-1, 1), n, replace = T)
+    cur.str[] <- str_flatten(current, collapse = " ")
+    if (!(cur.str %in% vec)) {
+      vec <- c(vec, cur.str)
+    } 
+  }
+  paste0(c(total.possible, vec), collapse = "\n")
+  # note the output is too long to fit in the console, so write to a text file instead
+}
+oriented.perms(n)
