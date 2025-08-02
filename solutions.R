@@ -779,3 +779,7 @@ oriented.perms <- function(n) {
   # note the output is too long to fit in the console, so write to a text file instead
 }
 oriented.perms(n)
+
+# counting subsets
+num.subsets <- function(n) as.bigz(2)^n %% 1e6
+num.subsets(n)
