@@ -783,3 +783,7 @@ oriented.perms(n)
 # counting subsets
 num.subsets <- function(n) as.bigz(2)^n %% 1e6
 num.subsets(n)
+
+# counting phylogenetic ancestors
+ancestor.count <- function(n) return(n-2)
+ancestor.count(n)
