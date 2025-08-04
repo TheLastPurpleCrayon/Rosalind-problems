@@ -787,3 +787,28 @@ num.subsets(n)
 # counting phylogenetic ancestors
 ancestor.count <- function(n) return(n-2)
 ancestor.count(n)
+
+# speeding up motif finding
+kmp.failure.array <- function(fasta) {
+  parse.fasta.v2(fasta)
+  string <- str_split(seqs[1], "")[[1]]
+  
+  vec <- numeric(length(string))
+  for (k in 2:length(vec)) {
+    # if the previous entry is 0, only check if current should be 1
+    # if the previous entry is nonzero, check values from 1+previous value downward
+    if (vec[k-1] == 0) {
+      vec[k] <- string[k] == string[1]
+    } else {
+      for (i in (vec[k-1]+1):1) {
+        if (str_flatten(string[(k-i+1):k]) == str_flatten(string[1:i])) {
+          vec[k] <- i
+          break
+        }
+      }
+    }
+  }
+  str_flatten(vec, collapse = " ")
+}
+kmp.failure.array(fasta)
+
