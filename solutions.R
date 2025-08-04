@@ -732,4 +732,41 @@ random.motif.prob <- function(n, gc, string) {
 }
 random.motif.prob(n, gc, string)
 
+# HELPER FUNCTION: given an alphabet, convert a string into its ABCD equiv for sorting
+my.match <- function(alphabet, string) {
+  s <- str_split_1(string, "")
+  vec <- character(length(s))
+  for (i in 1:length(s)) {
+    vec[i] <- LETTERS[which(alphabet == s[i])]
+  }
+  str_flatten(vec, "")
+}
 
+# ordering of strings of varying length lexicographically
+enumerate.in.order <- function(string, n) {
+  alphabet <- str_split_1(string, " ")
+  entries <- character(0)
+  
+  for (i in 1:n) {
+    vec <- character(0)
+    max <- length(alphabet)^i
+    while (length(vec) < max) { # there's probably a faster way than randomization
+      candidate <- str_flatten(sample(alphabet, size = i, replace = T), "")
+      if (!(candidate %in% vec)) vec <- c(vec, candidate)
+    }
+    entries <- c(entries, vec)
+  }
+  
+  # sorting requires a conversion to the normal alphabet
+  numbers <- character(length(entries))
+  for (i in 1:length(entries)) {
+    numbers[i] <- my.match(alphabet, entries[i])
+  }
+  tib <- tibble(entries = entries, numbers = numbers) # work around lack of dicts
+  output <- tib |> 
+    arrange(numbers) |> 
+    pull(entries)
+  
+  cat(output, sep = "\n", file = file)
+}
+enumerate.in.order(string, n)
