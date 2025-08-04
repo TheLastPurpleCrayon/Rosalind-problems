@@ -718,4 +718,18 @@ subsequences <- function(permutation) {
 }
 subsequences(permutation)
 
+# matching random motifs
+random.motif.prob <- function(n, gc, string) {
+  vec <- str_split_1(string, "")
+  p <- 1
+  
+  for (i in 1:length(vec)) {
+    if (vec[i] %in% c("G", "C")) p <- p * (gc/2)
+    else p <- p * ((1-gc)/2)
+  }
+  
+  1-dbinom(0, n, prob = p)
+}
+random.motif.prob(n, gc, string)
+
 
