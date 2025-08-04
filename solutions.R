@@ -558,141 +558,6 @@ assemble.reads <- function(fasta) {
 }
 assemble.reads(fasta)
 
-# # longest increasing subsequence
-# find.subsequences <- function(permutation) {
-#   vec <- as.numeric(str_split(permutation, " ")[[1]])
-#   n <- length(vec)
-#   
-#   # find increasing subsequence
-#   longest <- numeric(0)
-#   for (i in 1:(n-1)) {
-#     working <- vec[i]
-#     for (j in (i+1):n) {
-#       if (vec[j] > working[length(working)]) {working <- c(working, vec[j])}
-#     }
-#     if (length(working) > length(longest)) {longest <- working}
-#   }
-#   increasing <- str_flatten(longest, " ")
-#   
-#   # find decreasing subsequence
-#   longest <- numeric(0)
-#   for (i in 1:(n-1)) {
-#     working <- vec[i]
-#     for (j in (i+1):n) {
-#       if (vec[j] < working[length(working)]) {working <- c(working, vec[j])}
-#     }
-#     if (length(working) > length(longest)) {longest <- working}
-#   }
-#   decreasing <- str_flatten(longest, " ")
-#   
-#   cat(paste0(c(increasing, decreasing), collapse = "\n"))
-# }
-# find.subsequences(permutation)
-# 
-# # helper function
-# # take the first item in the given vector
-# #   remove all items in the vector smaller than that item
-# #   for all remaining items,
-# #     take the first item, and remove all values smaller than it
-# #     but also take the second item, and remove all values smaller than it
-# 
-# remove.and.crunch <- function(string, i) {
-#   vec <- str_split(string, " ")[[1]]
-#   if (length(vec) == 1) return(vec)
-#   ith <- vec[i]
-#   for (j in 1:i) {
-#     vec <- vec[j]
-#   }
-#   vec <- vec[which(vec >= ith)]
-#   return(c(vec[i], remove.and.crunch(str_flatten(vec, " "), i)))
-# }
-# remove.and.crunch(vec, 1)
-# 
-# # for each value
-# # compile a list of increasing substrings
-# #   for j in i:n
-# #     
-# # take the longest
-# 
-# fxn <- function(vec, i) {
-#   if (length(vec) <= 1) return(vec)
-#   ith <- vec[i]
-#   remaining <- vec[-(1:i)]
-#   reamining <- remaining[which(remaining >= ith)]
-#   for (j in 1:length(remaining)) {
-#     res <- c(ith, fxn(remaining, j))
-#     return(res)
-#   }
-# }
-# 
-# fxn.wrapper <- function(vec, max.i) {
-#   accumulator <- character(0)
-#   for (k in 1:max.i) {
-#     accumulator <- list(accumulator, fxn(vec, k))
-#   }
-#   accumulator
-# }
-# fxn.wrapper(vec, 4)
-# 
-# 
-# 
-# 
-# # HELPER FUNCTIONS: randomize an increasing/decreasing subsequence
-# find.increasing.subsequence <- function(vec, numIter) {
-#   n <- length(vec)
-#   longest <- numeric(0)
-#   
-#   for (i in 2:n) {
-#     # take numIter tries to randomize an increasing subsequence of size i 2:n
-#     samp <- numeric(i)
-#     for (b in 1:numIter) {
-#       samp[] <- sample(vec, size = i)
-#       samp[] <- vec[which(vec %in% samp)] # this puts the items in the original order
-#       if (all(diff(samp) > 0)) { # if sample is strictly increasing, store it
-#         longest <- samp
-#         break
-#       } else if (b == numIter) { # if the for loop completes with no match, be done
-#         return(longest)
-#       }
-#     }
-#   }
-#   stop("No increasing subsequence found")
-# }
-# find.decreasing.subsequence <- function(vec, numIter) {
-#   n <- length(vec)
-#   longest <- numeric(0)
-#   
-#   for (i in 2:n) {
-#     # take numIter tries to randomize an increasing subsequence of size i 2:n
-#     samp <- numeric(i)
-#     for (b in 1:numIter) {
-#       samp[] <- sample(vec, size = i)
-#       samp[] <- vec[which(vec %in% samp)] # this puts the items in the original order
-#       if (all(diff(samp) < 0)) { # if sample is strictly decreasing, store it
-#         longest <- samp
-#         break
-#       } else if (b == numIter) { # if the for loop completes with no match, be done
-#         return(longest)
-#       }
-#     }
-#   }
-#   stop("No decreasing subsequence found")
-# }
-# 
-# generate.subsequences <- function(string, numIter = 1e6) {
-#   string <- str_remove_all(string, "\\r") # manage weird whitespace from file read
-#   string <- str_remove(string, "^.*\\n") # take off the first line (permutation length)
-#   
-#   vec <- as.numeric(str_split(string, " ")[[1]])
-#   
-#   inc <- find.increasing.subsequence(vec, numIter) |> str_flatten(collapse = " ")
-#   dec <- find.decreasing.subsequence(vec, numIter) |> str_flatten(collapse = " ")
-#   
-#   cat(paste0(c(inc, dec), collapse = "\n"))
-# }
-# Sys.time(); generate.subsequences(string, numIter = 1e6); Sys.time()
-
-
 # completing a tree
 complete.tree <- function(n, string) {
   lis <- as.list(str_split(str_remove(string, "\\n$"), "\n")[[1]])
@@ -811,4 +676,46 @@ kmp.failure.array <- function(fasta) {
   str_flatten(vec, collapse = " ")
 }
 kmp.failure.array(fasta)
+
+# longest increasing subsequence
+subsequences <- function(permutation) {
+  vec <- as.numeric(str_split(permutation, " ")[[1]])
+  n <- length(vec)
+  
+  inc.subseqs <- vector("list", n) # despite the name, this creates a *list* of length n
+  dec.subseqs <- vector("list", n)
+  
+  # increasing subsequences
+  for (i in n:1) {
+    best <- c(vec[i])
+    # starting from the end, find the best increasing subsequence from that point
+    # onward, then as you go backwards, append new values if they're smaller
+    for (j in (i+1):n) {
+      if (j>n) next
+      if (vec[j] > vec[i] && length(inc.subseqs[[j]]) + 1 > length(best)) {
+        best <- c(vec[i], inc.subseqs[[j]])
+      }
+    }
+    inc.subseqs[[i]] <- best
+  }
+  best.inc <- str_flatten(inc.subseqs[[which.max(sapply(inc.subseqs, length))]], " ")
+  
+  # decreasing subsequences
+  for (i in n:1) {
+    best <- c(vec[i])
+    
+    for (j in (i+1):n) {
+      if (j>n) next
+      if (vec[j] < vec[i] && length(dec.subseqs[[j]]) + 1 > length(best)) {
+        best <- c(vec[i], dec.subseqs[[j]])
+      }
+    }
+    dec.subseqs[[i]] <- best
+  }
+  best.dec <- str_flatten(dec.subseqs[[which.max(sapply(dec.subseqs, length))]], " ")
+  
+  cat(c(best.inc, best.dec), sep = "\n")
+}
+subsequences(permutation)
+
 
