@@ -1,5 +1,6 @@
 library(tidyverse)
 library(gmp) # for big numbers
+library(beepr)
 
 # complement a strand of DNA
 revcomp <- function(string) {
@@ -892,5 +893,77 @@ maximum.matchings <- function(fasta) {
   out
 }
 maximum.matchings(fasta)
+
+# HELPER FUNCTION: calculate the Catalan numbers
+catalans <- function(num) {
+  nums <- c("0" = 1, "1" = 1)
+  for (n in 2:num) {
+    acc <- 0
+    for (k in 1:n) {
+      acc <- acc + (nums[as.character(k-1)] * nums[as.character(n-k)])
+    }
+    nums[as.character(n)] <- acc
+  }
+  nums
+}
+
+# HELPER FUNCTION: recursion for counting the number of noncrossing matches
+count.matches <- function(s) {
+  #print(vec)
+  if (nchar(s) == 0) return(1)
+  if (!is.null(memo[[s]])) return(memo[[s]])
+  
+  poss.matches <- str_locate_all(s, matches[substr(s, 1, 1)])[[1]][,1]
+  poss.matches <- poss.matches[which(poss.matches %% 2 == 0)]
+  
+  if (length(poss.matches) == 0) return(0)
+  
+  acc <- 0
+  for (i in 1:length(poss.matches)) {
+    if (poss.matches[i] == 2) {
+      betweens <- ""
+    } else {
+      betweens <- substr(s, 2, poss.matches[i] - 1)
+    }
+    
+    if (poss.matches[i] == nchar(s)) {
+      outsides <- ""
+    } else {
+      outsides <- substr(s, poss.matches[i] + 1, nchar(s))
+    }
+    
+    count.betw <- count.matches(betweens)
+    count.outs <- count.matches(outsides)
+    
+    acc <- acc + (count.betw*count.outs) %% 1e6
+  }
+  memo[[s]] <<- acc
+  acc
+}
+
+# catalan numbers and RNA secondary structures
+noncrossing.matchings <- function(fasta) {
+  parse.fasta.v2(fasta)
+  string <- seqs[1]
+  
+  matches <<- c("A" = "U", "U" = "A", "C" = "G", "G" = "C")
+  memo <<- list()
+  count.matches(string) %% 1e6
+}
+noncrossing.matchings(fasta)
+
+# HELPER FUNCTION: tell me how long something takes to run and notify me when done
+tictoc <- function(code) {
+  tic <- Sys.time()
+  print(code)
+  toc <- Sys.time()
+  cat("\n")
+  print(toc - tic)
+  beep(3)
+}
+tictoc(noncrossing.matchings(fasta))
+
+
+
 
 
