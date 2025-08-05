@@ -963,6 +963,36 @@ tictoc <- function(code) {
 }
 tictoc(noncrossing.matchings(fasta))
 
+# HELPER FUNCTION: Hamming distance
+hamming <- function(s1, s2) {
+  v1 <- str_split_1(s1, "")
+  v2 <- str_split_1(s2, "")
+  acc <- 0
+  for (i in 1:length(v1)) {
+    acc <-  acc + (v1[i] != v2[i])
+  }
+  acc
+}
+
+# creating a distance matrix
+dist.mat <- function(fasta) {
+  parse.fasta.v2(fasta)
+  n <- length(seqs)
+  mat <- matrix(NA, nrow = n, ncol = n)
+  for (i in 1:n) {
+    for (j in 1:n) {
+      if (i==j) {
+        mat[i, j] = 0
+      } else {
+        mat[i, j] = sum(str_split_1(seqs[i], "") != str_split_1(seqs[j], ""))
+      }
+    }
+  }
+  mat <- mat/nchar(seqs[1])
+  prmatrix(mat, rowlab = rep("", n), collab = rep("", n))
+}
+dist.mat(fasta)
+
 
 
 
