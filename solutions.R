@@ -1,4 +1,5 @@
 library(tidyverse)
+library(gmp) # for big numbers
 
 # complement a strand of DNA
 revcomp <- function(string) {
@@ -146,7 +147,6 @@ expected <- function(string) {
 expected(string)
 
 # mortal fibonacci rabbits
-library(gmp) # for big numbers
 mort.fib <- function(n, m) {
   vec <- c(1, 0, rep(0, m-2)) # month 1
   vec <- as.bigz(vec)
@@ -874,5 +874,23 @@ reversal.distance <- function(string) {
 } 
 reversal.distance(string)
 
+# maximum matchings and RNA secondary structures
+maximum.matchings <- function(fasta) {
+  parse.fasta.v2(fasta)
+  string <- seqs[1]
+  
+  cg <- c(str_count(string, "C"), str_count(string, "G"))
+  au <- c(str_count(string, "A"), str_count(string, "U"))
+  
+  max.cg <- max(cg)
+  min.cg <- min(cg)
+  out <- factorialZ(max.cg)/factorialZ(max.cg - min.cg)
+  max.au <- max(au)
+  min.au <- min(au)
+  out <- out*(factorialZ(max(au))/factorialZ(max.au - min.au))
+  
+  out
+}
+maximum.matchings(fasta)
 
 
