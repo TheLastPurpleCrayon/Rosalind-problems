@@ -770,3 +770,109 @@ enumerate.in.order <- function(string, n) {
   cat(output, sep = "\n", file = file)
 }
 enumerate.in.order(string, n)
+
+# HELPER FUNCTION: make a reversal of a permutation
+arb.rev <- function(perm, position, halfwidth) {
+  # perm: the permutation to make a reversal in
+  # position: the middle of the reversal. supports both integers (n) and n.5
+  # halfwidth: the full width of the reversal divided by 2
+  bounds <- position + c(-1, 1)*halfwidth
+  start <- ceiling(bounds[1])
+  end <- floor(bounds[2])
+  perm[start:end] <- perm[end:start]
+  perm
+}
+
+# HELPER FUNCTION: given two vectors of the same numbers, return the total
+# distance between the two, measured as the sum of the numbers of spaces
+# each element had to move to get from one to the other
+totalDistance <- function(v1, v2) {
+  n <- length(v1)
+  dist <- 0
+  for (i in 1:n) {
+    dist <- dist + abs(which(v2 == v1[i]) - i)
+  }
+  dist
+}
+
+# reversal distance
+reversal.distance <- function(string) {
+  # more parsing than usual for this problem
+  vec <- str_split_1(string, "\n")
+  origs <- character(0)
+  revds <- character(0)
+  for (i in 1:length(vec)) {
+    if (i %% 3 == 1) {
+      origs <- c(origs, vec[i])
+    } else if (i %% 3 == 2) {
+      revds <- c(revds, vec[i])
+    }
+  }
+  
+  output <- numeric(0)
+  for (i in 1:length(origs)) {
+    orig <- as.numeric(str_split_1(origs[i], " "))
+    revd <- as.numeric(str_split_1(revds[i], " "))
+    n <- length(orig)
+    
+    totDist <- totalDistance(orig, revd)
+    
+    
+    old <- list(revd)
+    cand <- numeric(n)
+    
+    distances <- 50
+    for (b in 1:3e3){
+      numIters <- 0
+      numRevs <- 0
+      numIterationsSinceImprovement <- 0
+      totDist <- totalDistance(orig, revd)
+      working <- revd
+      while(totDist > 0 && numRevs <= min(distances)) {
+        
+        # randomly do a reversal, taking pains to make sure it's valid
+        pos <- sample(seq(1.5, n-0.5, by=0.5), 1)
+        maxhw <- min(floor(pos-0.5), floor(n+0.5-pos))
+        hw <- sample(1:maxhw, 1)
+        cand <- arb.rev(working, position = pos, halfwidth = hw)
+        
+        # if the reversal moves us closer to the original, go from there, discard o/w
+        newDist <- totalDistance(orig, cand)
+        if (newDist < totDist) {
+          old[[length(old)+1]] <- working
+          working <- cand
+          totDist <- newDist
+          numRevs <- numRevs + 1
+          numIterationsSinceImprovement <- 0
+        } else {
+          numIterationsSinceImprovement <- numIterationsSinceImprovement + 1
+        }
+        
+        # failsafe: if no improvement in last 100 iterations, go back one reversal
+        if (numIterationsSinceImprovement > 500) {
+          if (length(old)>0) working <- old[[length(old)]]
+          old <- old[-length(old)]
+          numIterationsSinceImprovement <- 0
+        }
+        # failsafe 2: if no movement in 10000 iterations, skip and move on
+        numIters <- numIters + 1
+        if (numIters > 1e4) {
+          numRevs <- Inf
+          break
+        }
+        #cat(i, totDist, numRevs, min(distances), "\n")
+      }
+      distances <- c(distances, numRevs)
+    }
+    # as.numeric(names(table(distances)[which.max(table(distances))]))
+    output <- c(output, min(distances))
+  }
+  cat(output, " ")
+  # sometimes this function does not find the minimum number of reversals, sometimes it
+  # finds a number *lower* than the minimum somehow. but at least it doesn't
+  # require 20 mins of enumeration like the intended solution does!
+} 
+reversal.distance(string)
+
+
+
