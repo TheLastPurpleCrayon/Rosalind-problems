@@ -993,7 +993,33 @@ dist.mat <- function(fasta) {
 }
 dist.mat(fasta)
 
+# HELPER FUNCTION: modify enumerkate() above to return its output rather than
+# printing it
+enumerkate.return <- function(alphabet, n) {
+  alph <- str_remove_all(alphabet, "\\s")
+  
+  list <- list(strsplit(alph, "")[[1]])
+  for (i in 1:(n-1)){
+    for (j in length(list[[1]]):1) {
+      list[[j]] <- paste0(list[[1]][j], strsplit(alph, "")[[1]])
+    }
+    list <- list(unlist(list))
+  }
+  unlist(list)
+}
 
-
-
+# k-mer composition
+tetranucleotide.composition <- function(fasta) {
+  parse.fasta.v2(fasta)
+  fourmers <- enumerkate.return("ACGT", 4)
+  
+  pat <- paste0("(?=(", fourmers, "))")
+  
+  #out <- str_count(seqs[1], fourmers) 
+  # for some reason, str_count doesn't count overlapping matches correctly
+  out <- sapply(str_locate_all(seqs[1], pat), length)/2
+  
+  cat(out, collapse = " ")
+}
+tetranucleotide.composition(fasta)
 
