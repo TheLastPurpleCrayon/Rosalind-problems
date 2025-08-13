@@ -1023,3 +1023,37 @@ tetranucleotide.composition <- function(fasta) {
 }
 tetranucleotide.composition(fasta)
 
+# error correction in reads
+corrections <- function(fasta) {
+  parse.fasta.v2(fasta)
+  
+  seen.once <- character(0)
+  seen.twice <- character(0)
+  for (i in 1:length(seqs)) {
+    if (seqs[i] %in% seen.once || revcomp(seqs[i]) %in% seen.once) {
+      seen.twice[length(seen.twice)+1] <- seqs[i]
+      toRemove <- which(seen.once == seqs[i])
+      if (length(toRemove) == 0) toRemove <- which(seen.once == revcomp(seqs[i]))
+      seen.once <- seen.once[-toRemove]
+    } else if (seqs[i] %in% seen.twice || revcomp(seqs[i]) %in% seen.twice) {
+      # do nothing
+    } else {
+      seen.once[length(seen.once)+1] <- seqs[i]
+    }
+  }
+  
+  o <- character(0)
+  hamming.vec <- Vectorize(hamming)
+  for (j in 1:length(seen.once)) {
+    ref <- seen.twice[which(hamming.vec(seen.once[j], seen.twice) == 1)]
+    if (length(ref) == 0) {
+      ref <- seen.twice[which(hamming.vec(revcomp(seen.once[j]), seen.twice) == 1)]
+    }
+    o <- c(o, paste0(seen.once[j], "->", ref))
+  }
+  cat(o, sep = "\n")
+}
+corrections(fasta)
+
+
+
