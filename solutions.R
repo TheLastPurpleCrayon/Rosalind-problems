@@ -955,7 +955,7 @@ noncrossing.matchings(fasta)
 # HELPER FUNCTION: tell me how long something takes to run and notify me when done
 tictoc <- function(code) {
   tic <- Sys.time()
-  print(code)
+  cat(code)
   toc <- Sys.time()
   cat("\n")
   print(toc - tic)
@@ -1054,6 +1054,64 @@ corrections <- function(fasta) {
   cat(o, sep = "\n")
 }
 corrections(fasta)
+
+# HELPER FUNCTION: recursive search for subsequences
+# Uses memoization to speed up a recursion that ultimately builds back to front
+comm.subseq.search <- function(idxOfLast1, idxOfLast2) {
+
+  # check if problem has been done already
+  key <- paste(idxOfLast1, idxOfLast2, sep = ",")
+  if (exists(key, envir = memo)) {
+    return(get(key, envir = memo))
+  } 
+  
+  best_subseq = ""
+
+  for (i in 1:length(acgt)) {
+    s1match <- regexpr(acgt[i], substr(seqs[1], idxOfLast1+1, nchar(seqs[1])))[[1]]
+    s2match <- regexpr(acgt[i], substr(seqs[2], idxOfLast2+1, nchar(seqs[2])))[[1]]
+    if ((s1match != -1) && (s2match != -1)) {
+      cand <- paste0(acgt[i], 
+                     comm.subseq.search(idxOfLast1+s1match, idxOfLast2+s2match))
+      if (nchar(cand) > nchar(best_subseq)) best_subseq <- cand
+    }
+  }
+    
+  assign(key, best_subseq, envir = memo)
+  return(best_subseq)
+}
+
+# finding a shared spliced motif
+longest.common.subsequence <- function(fasta) {
+  parse.fasta.v2(fasta)
+  
+  # going to use base R string manipulation as a challenge
+  # str_length() -> nchar()
+  # str_split_1 and vec[i] -> substr(string, i, i)
+  
+  acgt <<- c("A", "C", "G", "T")
+  
+  cat(comm.subseq.search(0, 0))
+}
+memo <- new.env(hash = T, parent = emptyenv())
+longest.common.subsequence(fasta)
+tictoc(longest.common.subsequence(fasta))
+
+
+# recursion fxn
+# takes s1, s2, motifSoFar, indexOfLastMotifLetter
+# 
+# from indexOf, identify all symbols that appear afterward
+# for each symbol, add it to motif and call self on motif+symbol
+# (only run if both strands contain new motif)
+# (if no symbols are present in both strands, add motif to subseq var and return)
+# 
+
+
+
+
+
+
 
 
 
