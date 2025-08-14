@@ -1097,18 +1097,9 @@ memo <- new.env(hash = T, parent = emptyenv())
 longest.common.subsequence(fasta)
 tictoc(longest.common.subsequence(fasta))
 
-
-# recursion fxn
-# takes s1, s2, motifSoFar, indexOfLastMotifLetter
-# 
-# from indexOf, identify all symbols that appear afterward
-# for each symbol, add it to motif and call self on motif+symbol
-# (only run if both strands contain new motif)
-# (if no symbols are present in both strands, add motif to subseq var and return)
-# 
-
-
-
+# Introduction to Alternative Splicing
+fixed.subsets <- function(n, m) return(sum(chooseZ(n, m:n)) %% 1e6)
+fixed.subsets(n, m)
 
 
 
