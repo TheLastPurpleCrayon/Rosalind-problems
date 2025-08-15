@@ -1,7 +1,7 @@
 
 # Rosalind Problems
 
-[Rosalind.info] is a site for learning bioinformatics at one's own pace. It contains a bunch of programming questions to practice writing algorithms for bioinformatics. This repo contains my solutions to these problems. I got hooked on these problems in summer 2025 after doing the first 16 within 24 hours of finding the site.
+[Rosalind.info](rosalind.info) is a site for learning bioinformatics at one's own pace. It contains a bunch of programming questions to practice writing algorithms for bioinformatics. This repo contains my solutions to these problems. I got hooked on these problems in summer 2025 after doing the first 16 within 24 hours of finding the site.
 
 
 
