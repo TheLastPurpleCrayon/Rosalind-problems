@@ -53,3 +53,20 @@ setOps <- function(string) {
   cat(out)
 }
 #setOps(string)
+
+# inferring protein from spectrum
+spec_to_prot <- function(string){
+  chart <- read_delim("useful charts/protein_masses_(monoisotopic).txt", 
+                      delim = "   ", col_names = F, show_col_types = F)
+  names(chart) <- c("prot", "mass")
+  
+  spect <- as.numeric(strsplit(string, "\n")[[1]])
+  spect <- diff(spect)
+  
+  out <- character(0)
+  for (i in 1:length(spect)) {
+    out <- c(out, chart$prot[which.min(abs(spect[i] - chart$mass))])
+  }
+  cat(out, sep = "")
+}
+#spec_to_prot(string)
