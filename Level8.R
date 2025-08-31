@@ -35,3 +35,21 @@ all.noncrossing.matchings <- function(fasta) {
 }
 #all.noncrossing.matchings(fasta)
 #tictoc(all.noncrossing.matchings(fasta))
+
+# Introduction to Set Operations
+setOps <- function(string) {
+  string <- str_remove_all(string, "\r")
+  spl <- strsplit(string, "\n")[[1]]
+  n <- as.numeric(spl[1])
+  a <- as.numeric(strsplit(substr(spl[2], 2, nchar(spl[2])-1), ",")[[1]])
+  b <- as.numeric(strsplit(substr(spl[3], 2, nchar(spl[3])-1), ",")[[1]])
+  
+  out <- paste0("{", paste(union(a, b), collapse = ", "), "}")
+  out <- paste0(out, "\n", paste0("{", paste(intersect(a, b), collapse = ", "), "}"))
+  out <- paste0(out, "\n", paste0("{", paste(setdiff(a, b), collapse = ", "), "}"))
+  out <- paste0(out, "\n", paste0("{", paste(setdiff(b, a), collapse = ", "), "}"))
+  out <- paste0(out, "\n", paste0("{", paste(setdiff(1:n, a), collapse = ", "), "}"))
+  out <- paste0(out, "\n", paste0("{", paste(setdiff(1:n, b), collapse = ", "), "}"))
+  cat(out)
+}
+#setOps(string)
